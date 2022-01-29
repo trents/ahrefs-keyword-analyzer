@@ -61,14 +61,19 @@ def main(argv):
                 print("Could not read file:", filelist[i])
 
     urls = kwlist["Current URL"].unique()
-    kwlist = kwlist[kwlist['Current position'] <= r_value]
+#    kwlist = kwlist[kwlist['Current position'] <= r_value]
     kwlist = kwlist[kwlist['KD'] <= d_value]
     out = kwlist.groupby('Keyword').nunique().reset_index()
     out = out.loc[:, out.columns.intersection(['Keyword'])]
     out["Count"] = 0
-    for kw in kwlist["Keyword"]:
-        out.loc[out["Keyword"] == kw,"Count"] += 1
+    out["Total Position"] = 0
+    out["Average Position"] = 0
+    for index, row in kwlist.iterrows():
+        out.loc[out["Keyword"] == row["Keyword"],"Count"] += 1
+        out.loc[out["Keyword"] == row["Keyword"],"Total Position"] += row["Current position"]
+        out.loc[out["Keyword"] == row["Keyword"],"Average Position"] = out.loc[out["Keyword"] == row["Keyword"],"Total Position"] / out.loc[out["Keyword"] == row["Keyword"],"Count"]
     out = out[out['Count'] >= p_value]
+    out = out[out['Average Position'] <= r_value]
     out["Difficulty"] = 0
     out["Volume"] = 0
     for kw in out["Keyword"]:
